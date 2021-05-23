@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wh.mapper.DecisionMapper">
+    <select id="getAllDecisions" parameterType="wh.bean.DecisionReq" resultType="wh.bean.DecisionRes" >
+        select * from tbl_decision where action &lt; 2
+        <if test="name != null">and name like concat('%',#{name},'%')</if>
+    </select>
+
+    <select id="getDecisionDetail" parameterType="java.lang.String" resultType="java.lang.String">
+        select name from tbl_decision_detail where action &lt; 2
+        and decisionID = #{id}
+    </select>
+
+    <insert id="addDecision" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id" >
+        insert into tbl_decision (name, createTime, actionTime) values (
+        #{name},date_format(now(),'%Y%m%d%H%i%s'),date_format(now(),'%Y%m%d%H%i%s')
+        )
+    </insert>
+
+    <insert id="addDecisionDetail" parameterType="java.util.Map">
+        insert into tbl_decision (decisionID, name, createTime, actionTime) values (
+        <foreach collection="nameList" item="item"  separator=",">
+            (
+            #{decisionID},
+            #{item.name},
+            date_format(now(),'%Y%m%d%H%i%s'),
+            date_format(now(),'%Y%m%d%H%i%s')
+            )
+        </foreach>
+        )
+    </insert>
+
+    <update id="delDecisionDetail" parameterType="java.util.Map">
+        update tbl_decision_detail set action = 2, actionTime = date_format(now(),'%Y%m%d%H%i%s')
+        where decisionID = #{id} and name in (
+        <foreach collection="nameList" item="item"  separator=",">
+            #{item.name},
+        </foreach>
+        )
+    </update>
+</mapper>
